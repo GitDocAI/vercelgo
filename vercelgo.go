@@ -1,4 +1,4 @@
-package vercelgo
+package main
 
 import "sync"
 

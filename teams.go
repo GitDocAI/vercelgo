@@ -1,4 +1,4 @@
-package vercelgo
+package main
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 // Get information for the Team specified by the teamId parameter.
 func (c *VercelClient) GetTeam(teamId string) (*schemas.Team, error) {
 	response, statusCode, err := utils.DoReq[schemas.Team](
-		fmt.Sprintf("%s/%s", fmt.Sprintf(config.TeamsURL, "v1"), teamId),
+		fmt.Sprintf("%s/v1/teams/%s", config.BaseURL, teamId),
 		nil, "GET", c.GetHeaders(), false, time.Second*10,
 	)
 	if err != nil {
@@ -30,7 +30,7 @@ func (c *VercelClient) GetTeam(teamId string) (*schemas.Team, error) {
 
 // Get a paginated list of all the Teams the authenticated User is a member of.
 func (c *VercelClient) ListTeams(filter *schemas.Filter) ([]schemas.Team, error) {
-	url := fmt.Sprintf(config.TeamsURL, "v1")
+	url := fmt.Sprintf("%s/v1/teams", config.BaseURL)
 	if filter != nil && filter.Limit > 0 {
 		url = fmt.Sprintf("%s?limit=%d", url, filter.Limit)
 	}
@@ -60,7 +60,7 @@ func (c *VercelClient) CreateTeam(slug, name string) (string, error) {
 		return "", fmt.Errorf("failed to marshal team: %w", err)
 	}
 
-	response, statusCode, err := utils.DoReq[schemas.Team](fmt.Sprintf(config.TeamsURL, "v1"), body, "POST", c.GetHeaders(), false, time.Second*10)
+	response, statusCode, err := utils.DoReq[schemas.Team](fmt.Sprintf("%s/v1/teams", config.BaseURL), body, "POST", c.GetHeaders(), false, time.Second*10)
 	if err != nil {
 		return "", fmt.Errorf("failed to create team: %w", err)
 	}
@@ -89,7 +89,7 @@ func (c *VercelClient) UpdateTeam(teamId, name, slug string) (*schemas.Team, err
 	}
 
 	response, statusCode, err := utils.DoReq[schemas.Team](
-		fmt.Sprintf("%s/%s", fmt.Sprintf(config.TeamsURL, "v1"), teamId),
+		fmt.Sprintf("%s/v1/teams/%s", config.BaseURL, teamId),
 		body, "PATCH", c.GetHeaders(), false, time.Second*10,
 	)
 	if err != nil {
@@ -112,7 +112,7 @@ func (c *VercelClient) DeleteTeam(teamId string, reasons []schemas.Reason) error
 		return fmt.Errorf("failed to marshal delete team request: %w", err)
 	}
 	_, statusCode, err := utils.DoReq[map[string]interface{}](
-		fmt.Sprintf("%s/%s", fmt.Sprintf(config.TeamsURL, "v1"), teamId),
+		fmt.Sprintf("%s/v1/teams/%s", config.BaseURL, teamId),
 		body, "DELETE", c.GetHeaders(), false, time.Second*10,
 	)
 	if err != nil {

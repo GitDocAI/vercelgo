@@ -1,4 +1,4 @@
-package vercelgo
+package main
 
 import (
 	"bytes"
@@ -18,6 +18,7 @@ import (
 	"github.com/YHVCorp/vercelgo/utils"
 )
 
+// Deploy uploads files to Vercel from a directory and creates a deployment for the specified project.
 func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.DeploymentResponse, error) {
 	files := []schemas.DeploymentFile{}
 	err := filepath.WalkDir(directory, func(path string, d os.DirEntry, err error) error {
@@ -36,7 +37,6 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 			}
 		}
 
-		fmt.Printf("Processing file: %s\n", path)
 		relPath, err := filepath.Rel(directory, path)
 		if err != nil {
 			return fmt.Errorf("error getting relative path for %q: %v", path, err)
@@ -50,7 +50,7 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 		hashBytes := sha1.Sum(content)
 		hash := hex.EncodeToString(hashBytes[:])
 
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s?teamId=%s", config.FilesURL, teamId), bytes.NewReader(content))
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/files?teamId=%s", config.BaseURL, teamId), bytes.NewReader(content))
 		if err != nil {
 			return fmt.Errorf("error creating request for %q: %v", path, err)
 		}
@@ -93,7 +93,7 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 		return nil, fmt.Errorf("marshal deployment error: %w", err)
 	}
 
-	response, status, err := utils.DoReq[schemas.DeploymentResponse](fmt.Sprintf("%s?teamId=%s", config.DeploymentsURL, teamId), body, "POST", c.GetHeaders(), false, 30*time.Second)
+	response, status, err := utils.DoReq[schemas.DeploymentResponse](fmt.Sprintf("%s/v13/deployments?teamId=%s", config.BaseURL, teamId), body, "POST", c.GetHeaders(), false, 30*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("create deployment error: %w", err)
 	}

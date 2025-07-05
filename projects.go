@@ -1,4 +1,4 @@
-package vercelgo
+package main
 
 import (
 	"encoding/json"
@@ -29,7 +29,7 @@ func (c *VercelClient) CreateProject(payload schemas.CreateProjectRequest, teamI
 		return nil, fmt.Errorf("failed to marshal create project request: %w", err)
 	}
 
-	url := fmt.Sprintf("%s?teamId=%s", fmt.Sprintf(config.ProjectsURL, "v11"), teamId)
+	url := fmt.Sprintf("%s/v11/projects?teamId=%s", config.BaseURL, teamId)
 
 	response, status, err := utils.DoReq[schemas.Project](url, body, "POST", c.GetHeaders(), false, 15*time.Second)
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *VercelClient) UpdateProject(projectIdOrName string, payload schemas.Cre
 		return nil, fmt.Errorf("failed to marshal update project request: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/%s?teamId=%s", fmt.Sprintf(config.ProjectsURL, "v9"), projectIdOrName, teamId)
+	url := fmt.Sprintf("%s/v9/projects/%s?teamId=%s", config.BaseURL, projectIdOrName, teamId)
 
 	response, status, err := utils.DoReq[schemas.Project](url, body, "PATCH", c.GetHeaders(), false, 15*time.Second)
 	if err != nil {
@@ -80,7 +80,7 @@ func (c *VercelClient) DeleteProject(projectIdOrName string, teamId string) erro
 		return fmt.Errorf("teamId is required")
 	}
 
-	url := fmt.Sprintf("%s/%s?teamId=%s", fmt.Sprintf(config.ProjectsURL, "v9"), projectIdOrName, teamId)
+	url := fmt.Sprintf("%s/v9/projects/%s?teamId=%s", config.BaseURL, projectIdOrName, teamId)
 
 	_, status, err := utils.DoReq[interface{}](url, nil, "DELETE", c.GetHeaders(), false, 15*time.Second)
 	if err != nil {
