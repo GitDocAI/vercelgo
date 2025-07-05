@@ -20,25 +20,8 @@ func (c *VercelClient) CreateProject(payload schemas.CreateProjectRequest, teamI
 	if teamId == "" {
 		return nil, fmt.Errorf("teamId is required")
 	}
-
-	if payload.BuildCommand == "" {
-		payload.BuildCommand = "next build"
-	}
-	if payload.InstallCommand == "" {
-		payload.InstallCommand = "npm install"
-	}
-	if payload.DevCommand == "" {
-		payload.DevCommand = "next dev"
-	}
 	if payload.Framework == "" {
 		payload.Framework = "nextjs"
-	}
-	if payload.OutputDirectory == "" {
-		payload.OutputDirectory = ".next"
-	}
-	if payload.PublicSource == nil {
-		defaultPublicSource := true
-		payload.PublicSource = &defaultPublicSource
 	}
 
 	body, err := json.Marshal(payload)
