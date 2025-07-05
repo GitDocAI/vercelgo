@@ -11,8 +11,12 @@ import (
 	"github.com/YHVCorp/vercelgo/utils"
 )
 
+// Get information for the Team specified by the teamId parameter.
 func (c *VercelClient) GetTeam(teamId string) (*schemas.Team, error) {
-	response, statusCode, err := utils.DoReq[schemas.Team](fmt.Sprintf("%s/%s", config.TeamsURL, teamId), nil, "GET", c.GetHeaders(), false, time.Second*10)
+	response, statusCode, err := utils.DoReq[schemas.Team](
+		fmt.Sprintf("%s/%s", fmt.Sprintf(config.TeamsURL, "v1"), teamId),
+		nil, "GET", c.GetHeaders(), false, time.Second*10,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get team: %w", err)
 	}
@@ -24,8 +28,14 @@ func (c *VercelClient) GetTeam(teamId string) (*schemas.Team, error) {
 	return &response, nil
 }
 
-func (c *VercelClient) ListTeams(limit int64) ([]schemas.Team, error) {
-	response, statusCode, err := utils.DoReq[schemas.ListTeamsResponse](fmt.Sprintf("%s?limit=%d", config.TeamsURL, limit), nil, "GET", c.GetHeaders(), false, time.Second*10)
+// Get a paginated list of all the Teams the authenticated User is a member of.
+func (c *VercelClient) ListTeams(filter *schemas.Filter) ([]schemas.Team, error) {
+	url := fmt.Sprintf(config.TeamsURL, "v1")
+	if filter != nil && filter.Limit > 0 {
+		url = fmt.Sprintf("%s?limit=%d", url, filter.Limit)
+	}
+
+	response, statusCode, err := utils.DoReq[schemas.ListTeamsResponse](url, nil, "GET", c.GetHeaders(), false, time.Second*10)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list teams: %w", err)
 	}
@@ -37,6 +47,8 @@ func (c *VercelClient) ListTeams(limit int64) ([]schemas.Team, error) {
 	return response.Teams, nil
 }
 
+// Create a new Team under your account.
+// You need to send a POST request with the desired Team slug, and optionally the Team name.
 func (c *VercelClient) CreateTeam(slug, name string) (string, error) {
 	team := schemas.Team{
 		Name: name,
@@ -48,7 +60,7 @@ func (c *VercelClient) CreateTeam(slug, name string) (string, error) {
 		return "", fmt.Errorf("failed to marshal team: %w", err)
 	}
 
-	response, statusCode, err := utils.DoReq[schemas.Team](config.TeamsURL, body, "POST", c.GetHeaders(), false, time.Second*10)
+	response, statusCode, err := utils.DoReq[schemas.Team](fmt.Sprintf(config.TeamsURL, "v1"), body, "POST", c.GetHeaders(), false, time.Second*10)
 	if err != nil {
 		return "", fmt.Errorf("failed to create team: %w", err)
 	}
@@ -60,8 +72,49 @@ func (c *VercelClient) CreateTeam(slug, name string) (string, error) {
 	return team.ID, nil
 }
 
-func (c *VercelClient) DeleteTeam(teamId string) error {
-	_, statusCode, err := utils.DoReq[map[string]interface{}](fmt.Sprintf("%s/%s", config.TeamsURL, teamId), nil, "DELETE", c.GetHeaders(), false, time.Second*10)
+// Update the information of a Team specified by the teamId parameter.
+// The name and slug parameters are optional.
+func (c *VercelClient) UpdateTeam(teamId, name, slug string) (*schemas.Team, error) {
+	team := schemas.Team{}
+	if name != "" {
+		team.Name = name
+	}
+	if slug != "" {
+		team.Slug = slug
+	}
+
+	body, err := json.Marshal(team)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal team: %w", err)
+	}
+
+	response, statusCode, err := utils.DoReq[schemas.Team](
+		fmt.Sprintf("%s/%s", fmt.Sprintf(config.TeamsURL, "v1"), teamId),
+		body, "PATCH", c.GetHeaders(), false, time.Second*10,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update team: %w", err)
+	}
+
+	if statusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to update team: %s", response)
+	}
+
+	return &response, nil
+}
+
+// Delete a team under your account.
+// You need to send teamId as required parameter.
+// An optional array of reasons for deletion may also be sent.
+func (c *VercelClient) DeleteTeam(teamId string, reasons []schemas.Reason) error {
+	body, err := json.Marshal(schemas.DeleteTeamRequest{Reasons: reasons})
+	if err != nil {
+		return fmt.Errorf("failed to marshal delete team request: %w", err)
+	}
+	_, statusCode, err := utils.DoReq[map[string]interface{}](
+		fmt.Sprintf("%s/%s", fmt.Sprintf(config.TeamsURL, "v1"), teamId),
+		body, "DELETE", c.GetHeaders(), false, time.Second*10,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to delete team: %v", err)
 	}
