@@ -1,4 +1,4 @@
-package main
+package vercelgo
 
 import (
 	"encoding/json"
