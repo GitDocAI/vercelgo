@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+
+	"github.com/YHVCorp/vercelgo/schemas"
 )
 
 func BuildQueryParams(filter interface{}) string {
@@ -38,5 +40,51 @@ func BuildQueryParams(filter interface{}) string {
 			values.Add(tag, value)
 		}
 	}
+	return values.Encode()
+}
+
+func BuildProjectDomainsParams(teamId string, opts *schemas.Options) string {
+	values := url.Values{}
+	values.Add("teamId", teamId)
+
+	if opts != nil {
+		if opts.Production != nil {
+			values.Add("production", *opts.Production)
+		}
+		if opts.Target != nil {
+			values.Add("target", *opts.Target)
+		}
+		if opts.CustomEnvironmentID != nil {
+			values.Add("customEnvironmentId", *opts.CustomEnvironmentID)
+		}
+		if opts.GitBranch != nil {
+			values.Add("gitBranch", *opts.GitBranch)
+		}
+		if opts.Redirects != nil {
+			values.Add("redirects", *opts.Redirects)
+		}
+		if opts.Redirect != nil {
+			values.Add("redirect", *opts.Redirect)
+		}
+		if opts.Verified != nil {
+			values.Add("verified", *opts.Verified)
+		}
+		if opts.Limit != nil {
+			values.Add("limit", strconv.Itoa(*opts.Limit))
+		}
+		if opts.Since != nil {
+			values.Add("since", strconv.FormatInt(*opts.Since, 10))
+		}
+		if opts.Until != nil {
+			values.Add("until", strconv.FormatInt(*opts.Until, 10))
+		}
+		if opts.Order != nil {
+			values.Add("order", *opts.Order)
+		}
+		if opts.Slug != nil {
+			values.Add("slug", *opts.Slug)
+		}
+	}
+
 	return values.Encode()
 }

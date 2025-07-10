@@ -101,3 +101,27 @@ func (c *VercelClient) DeleteProjectDomain(domainName, projectIdOrName, teamId s
 
 	return nil
 }
+
+// GetProjectDomains retrieves all domains associated with a project by ID or name.
+// It supports various filtering options including production, target environment, git branch, etc.
+func (c *VercelClient) GetProjectDomains(projectIdOrName, teamId string, opts *schemas.Options) (*schemas.ProjectDomainsResponse, error) {
+	if projectIdOrName == "" || teamId == "" {
+		return nil, fmt.Errorf("projectIdOrName and teamId are required")
+	}
+
+	url := fmt.Sprintf("%s/v9/projects/%s/domains", config.BaseURL, projectIdOrName)
+	params := utils.BuildProjectDomainsParams(teamId, opts)
+	if params != "" {
+		url += "?" + params
+	}
+
+	response, status, err := utils.DoReq[schemas.ProjectDomainsResponse](url, nil, "GET", c.GetHeaders(), false, 15*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("error getting project domains: %w", err)
+	}
+	if status != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", status)
+	}
+
+	return &response, nil
+}

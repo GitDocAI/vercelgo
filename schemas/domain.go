@@ -56,3 +56,8 @@ type DomainInfoWithVerification struct {
 	Info   *DomainInfo       `json:"info"`
 	Config *DomainConfigInfo `json:"config"`
 }
+
+type ProjectDomainsResponse struct {
+	Domains    []DomainInfo `json:"domains"`
+	Pagination Pagination  `json:"pagination"`
+}

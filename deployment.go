@@ -19,7 +19,7 @@ import (
 )
 
 // Deploy uploads files to Vercel from a directory and creates a deployment for the specified project.
-func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.DeploymentResponse, error) {
+func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.ProjectDomainsResponse, error) {
 	files := []schemas.DeploymentFile{}
 	err := filepath.WalkDir(directory, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -93,7 +93,7 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 		return nil, fmt.Errorf("marshal deployment error: %w", err)
 	}
 
-	response, status, err := utils.DoReq[schemas.DeploymentResponse](fmt.Sprintf("%s/v13/deployments?teamId=%s", config.BaseURL, teamId), body, "POST", c.GetHeaders(), false, 30*time.Second)
+	_, status, err := utils.DoReq[schemas.DeploymentResponse](fmt.Sprintf("%s/v13/deployments?teamId=%s", config.BaseURL, teamId), body, "POST", c.GetHeaders(), false, 30*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("create deployment error: %w", err)
 	}
@@ -101,5 +101,10 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 		return nil, fmt.Errorf("deployment failed with status %d", status)
 	}
 
-	return &response, nil
+	projectDomains, err := c.GetProjectDomains(projectId, teamId, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get project domains: %w", err)
+	}
+
+	return projectDomains, nil
 }
