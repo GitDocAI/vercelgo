@@ -52,6 +52,10 @@ type RecommendedCNAMEEntry struct {
 	Value string `json:"value"`
 }
 
+type AllDomainWithVerification struct {
+	Domains []DomainInfoWithVerification `json:"domains"`
+}
+
 type DomainInfoWithVerification struct {
 	Info   *DomainInfo       `json:"info"`
 	Config *DomainConfigInfo `json:"config"`
@@ -59,5 +63,5 @@ type DomainInfoWithVerification struct {
 
 type ProjectDomainsResponse struct {
 	Domains    []DomainInfo `json:"domains"`
-	Pagination Pagination  `json:"pagination"`
+	Pagination Pagination   `json:"pagination"`
 }

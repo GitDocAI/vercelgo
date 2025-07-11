@@ -19,7 +19,7 @@ import (
 )
 
 // Deploy uploads files to Vercel from a directory and creates a deployment for the specified project.
-func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.ProjectDomainsResponse, error) {
+func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.AllDomainWithVerification, error) {
 	files := []schemas.DeploymentFile{}
 	err := filepath.WalkDir(directory, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -101,10 +101,10 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 		return nil, fmt.Errorf("deployment failed with status %d", status)
 	}
 
-	projectDomains, err := c.GetProjectDomains(projectId, teamId, nil)
+	allDomains, err := c.GetProjectDomains(projectId, teamId, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get project domains: %w", err)
 	}
 
-	return projectDomains, nil
+	return allDomains, nil
 }
