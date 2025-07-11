@@ -35,40 +35,24 @@ func (c *VercelClient) AddProjectDomain(domainName, teamId, projectIdOrName stri
 	return c.GetProjectDomains(projectIdOrName, teamId, nil)
 }
 
-// GetDomainConfig retrieves the configuration details of a domain by its name and team ID.
-// It returns a DomainConfigInfo struct containing the configuration details.
-func (c *VercelClient) GetDomainConfig(domainName, teamId string) (*schemas.DomainConfigInfo, error) {
-	url := fmt.Sprintf("%s/v6/domains/%s/config?teamId=%s", config.BaseURL, domainName, teamId)
-
-	response, status, err := utils.DoReq[schemas.DomainConfigInfo](url, nil, "GET", c.GetHeaders(), false, 15*time.Second)
-	if err != nil {
-		return nil, fmt.Errorf("error getting domain config: %w", err)
-	}
-	if status != 200 {
-		return nil, fmt.Errorf("unexpected status code: %d", status)
-	}
-
-	return &response, nil
-}
-
 // DeleteProjectDomain removes a domain from a specific project by its name or ID.
 // It requires the domain name, project ID or name, and team ID.
-func (c *VercelClient) DeleteProjectDomain(domainName, projectIdOrName, teamId string) error {
+func (c *VercelClient) DeleteProjectDomain(domainName, projectIdOrName, teamId string) (*schemas.AllDomainWithVerification, error) {
 	if domainName == "" || projectIdOrName == "" || teamId == "" {
-		return fmt.Errorf("domainName, projectIdOrName, and teamId are required")
+		return nil, fmt.Errorf("domainName, projectIdOrName, and teamId are required")
 	}
 
 	url := fmt.Sprintf("%s/v9/projects/%s/domains/%s?teamId=%s", config.BaseURL, projectIdOrName, domainName, teamId)
 
 	_, status, err := utils.DoReq[interface{}](url, nil, "DELETE", c.GetHeaders(), false, 15*time.Second)
 	if err != nil {
-		return fmt.Errorf("error deleting domain: %w", err)
+		return nil, fmt.Errorf("error deleting domain: %w", err)
 	}
 	if status != 200 && status != 204 {
-		return fmt.Errorf("unexpected status code: %d", status)
+		return nil, fmt.Errorf("unexpected status code: %d", status)
 	}
 
-	return nil
+	return c.GetProjectDomains(projectIdOrName, teamId, nil)
 }
 
 // GetProjectDomains retrieves all domains associated with a project by ID or name.
@@ -106,4 +90,20 @@ func (c *VercelClient) GetProjectDomains(projectIdOrName, teamId string, opts *s
 	return &schemas.AllDomainWithVerification{
 		Domains: domainsWithVerification,
 	}, nil
+}
+
+// GetDomainConfig retrieves the configuration details of a domain by its name and team ID.
+// It returns a DomainConfigInfo struct containing the configuration details.
+func (c *VercelClient) GetDomainConfig(domainName, teamId string) (*schemas.DomainConfigInfo, error) {
+	url := fmt.Sprintf("%s/v6/domains/%s/config?teamId=%s", config.BaseURL, domainName, teamId)
+
+	response, status, err := utils.DoReq[schemas.DomainConfigInfo](url, nil, "GET", c.GetHeaders(), false, 15*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("error getting domain config: %w", err)
+	}
+	if status != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", status)
+	}
+
+	return &response, nil
 }
