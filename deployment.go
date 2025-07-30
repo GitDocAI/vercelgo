@@ -19,7 +19,7 @@ import (
 )
 
 // Deploy uploads files to Vercel from a directory and creates a deployment for the specified project.
-func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.AllDomainWithVerification, error) {
+func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.AllDomainWithVerification, string, error) {
 	files := []schemas.DeploymentFile{}
 	err := filepath.WalkDir(directory, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -79,7 +79,7 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed walking files: %w", err)
+		return nil, "", fmt.Errorf("failed walking files: %w", err)
 	}
 
 	deploymentReq := schemas.CreateDeploymentRequest{
@@ -90,23 +90,23 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 
 	body, err := json.Marshal(deploymentReq)
 	if err != nil {
-		return nil, fmt.Errorf("marshal deployment error: %w", err)
+		return nil, "", fmt.Errorf("marshal deployment error: %w", err)
 	}
 
-	_, status, err := utils.DoReq[schemas.DeploymentResponse](fmt.Sprintf("%s/v13/deployments?teamId=%s", config.BaseURL, teamId), body, "POST", c.GetHeaders(), false, 30*time.Second)
+	resp, status, err := utils.DoReq[schemas.DeploymentResponse](fmt.Sprintf("%s/v13/deployments?teamId=%s", config.BaseURL, teamId), body, "POST", c.GetHeaders(), false, 30*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("create deployment error: %w", err)
+		return nil, "", fmt.Errorf("create deployment error: %w", err)
 	}
 	if status != http.StatusOK && status != http.StatusCreated {
-		return nil, fmt.Errorf("deployment failed with status %d", status)
+		return nil, "", fmt.Errorf("deployment failed with status %d", status)
 	}
 
 	allDomains, err := c.GetProjectDomains(projectId, teamId, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get project domains: %w", err)
+		return nil, "", fmt.Errorf("failed to get project domains: %w", err)
 	}
 
-	return allDomains, nil
+	return allDomains, resp.Id, nil
 }
 
 // GetDeploymentStatus gets the status of a specific deployment by its ID and team ID.
