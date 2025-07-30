@@ -12,7 +12,19 @@ type CreateDeploymentRequest struct {
 }
 
 type DeploymentResponse struct {
-	Id    string           `json:"id"`
-	Url   string           `json:"url"`
-	Files []DeploymentFile `json:"files"`
+	Id         string           `json:"id"`
+	Url        string           `json:"url"`
+	Files      []DeploymentFile `json:"files"`
+	Status     string           `json:"status"`
+	ReadyState string           `json:"readyState"`
+	CreatedAt  int64            `json:"createdAt"`
+}
+
+type DeploymentStatus struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Url        string `json:"url"`
+	Status     string `json:"status"`
+	ReadyState string `json:"readyState"`
+	CreatedAt  int64  `json:"createdAt"`
 }

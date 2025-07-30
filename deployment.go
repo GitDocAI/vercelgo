@@ -108,3 +108,54 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 
 	return allDomains, nil
 }
+
+// GetDeploymentStatus gets the status of a specific deployment by its ID and team ID.
+func (c *VercelClient) GetDeploymentStatus(deploymentId, teamId string) (*schemas.DeploymentStatus, error) {
+	deploymentStatus, status, err := utils.DoReq[schemas.DeploymentStatus](
+		fmt.Sprintf("%s/v13/deployments/%s?teamId=%s", config.BaseURL, deploymentId, teamId),
+		nil,
+		"GET",
+		c.GetHeaders(),
+		false,
+		30*time.Second,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get deployment status error: %w", err)
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("failed to get deployment status with code %d", status)
+	}
+
+	return &deploymentStatus, nil
+}
+
+func (c *VercelClient) WaitForDeployment(deploymentId, teamId string, timeout time.Duration) (*schemas.DeploymentStatus, error) {
+	if timeout == 0 {
+		timeout = 10 * time.Minute
+	}
+
+	startTime := time.Now()
+	checkInterval := 5 * time.Second
+
+	for {
+		if time.Since(startTime) > timeout {
+			return nil, fmt.Errorf("deployment monitoring timed out after %v", timeout)
+		}
+
+		status, err := c.GetDeploymentStatus(deploymentId, teamId)
+		if err != nil {
+			return nil, fmt.Errorf("error checking deployment status: %w", err)
+		}
+
+		switch status.ReadyState {
+		case "READY":
+			return status, nil
+		case "ERROR":
+			return status, fmt.Errorf("deployment failed with state: %s", status.ReadyState)
+		case "CANCELED":
+			return status, fmt.Errorf("deployment was canceled")
+		}
+
+		time.Sleep(checkInterval)
+	}
+}
