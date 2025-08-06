@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/YHVCorp/vercelgo/config"
-	"github.com/YHVCorp/vercelgo/schemas"
-	"github.com/YHVCorp/vercelgo/utils"
+	"github.com/GitDocAI/vercelgo/config"
+	"github.com/GitDocAI/vercelgo/schemas"
+	"github.com/GitDocAI/vercelgo/utils"
 )
 
 // Deploy uploads files to Vercel from a directory and creates a deployment for the specified project.

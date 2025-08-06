@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/YHVCorp/vercelgo/schemas"
+	"github.com/GitDocAI/vercelgo/schemas"
 )
 
 func BuildQueryParams(filter interface{}) string {

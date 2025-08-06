@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/YHVCorp/vercelgo/config"
-	"github.com/YHVCorp/vercelgo/schemas"
-	"github.com/YHVCorp/vercelgo/utils"
+	"github.com/GitDocAI/vercelgo/config"
+	"github.com/GitDocAI/vercelgo/schemas"
+	"github.com/GitDocAI/vercelgo/utils"
 )
 
 // AddProjectDomain adds a new domain to a specific project.
