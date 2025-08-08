@@ -93,3 +93,49 @@ func (c *VercelClient) DeleteProject(projectIdOrName string, teamId string) erro
 
 	return nil
 }
+
+// PauseProject pauses a Vercel project by its ID or name
+func (c *VercelClient) PauseProject(projectIdOrName string, teamId string) error {
+	if projectIdOrName == "" {
+		return fmt.Errorf("projectIdOrName is required")
+	}
+	if teamId == "" {
+		return fmt.Errorf("teamId is required")
+	}
+
+	url := fmt.Sprintf("%s/v1/projects/%s/pause?teamId=%s", config.BaseURL, projectIdOrName, teamId)
+
+	_, status, err := utils.DoReq[interface{}](url, nil, "POST", c.GetHeaders(), false, 15*time.Second)
+	if err != nil {
+		return fmt.Errorf("pause project error: %w", err)
+	}
+
+	if status != http.StatusOK {
+		return fmt.Errorf("failed to pause project: status %d", status)
+	}
+
+	return nil
+}
+
+// UnpauseProject unpauses (resumes) a paused Vercel project by its ID or name
+func (c *VercelClient) UnpauseProject(projectIdOrName string, teamId string) error {
+	if projectIdOrName == "" {
+		return fmt.Errorf("projectIdOrName is required")
+	}
+	if teamId == "" {
+		return fmt.Errorf("teamId is required")
+	}
+
+	url := fmt.Sprintf("%s/v1/projects/%s/unpause?teamId=%s", config.BaseURL, projectIdOrName, teamId)
+
+	_, status, err := utils.DoReq[interface{}](url, nil, "POST", c.GetHeaders(), false, 15*time.Second)
+	if err != nil {
+		return fmt.Errorf("unpause project error: %w", err)
+	}
+
+	if status != http.StatusOK {
+		return fmt.Errorf("failed to unpause project: status %d", status)
+	}
+
+	return nil
+}
