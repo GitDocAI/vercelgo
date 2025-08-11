@@ -19,7 +19,7 @@ import (
 )
 
 // Deploy uploads files to Vercel from a directory and creates a deployment for the specified project.
-func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId string) (*schemas.AllDomainWithVerification, string, error) {
+func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId, target string) (*schemas.AllDomainWithVerification, string, error) {
 	files := []schemas.DeploymentFile{}
 	err := filepath.WalkDir(directory, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -86,6 +86,7 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 		Name:    deploymentName,
 		Project: projectId,
 		Files:   files,
+		Target:  target,
 	}
 
 	body, err := json.Marshal(deploymentReq)

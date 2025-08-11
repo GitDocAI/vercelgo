@@ -9,6 +9,7 @@ type CreateDeploymentRequest struct {
 	Name    string           `json:"name"`
 	Project string           `json:"project"`
 	Files   []DeploymentFile `json:"files"`
+	Target  string           `json:"target"`
 }
 
 type DeploymentResponse struct {
