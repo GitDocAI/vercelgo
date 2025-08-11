@@ -109,6 +109,25 @@ func (c *VercelClient) Deploy(projectId, deploymentName, directory, teamId strin
 	return allDomains, resp.Id, nil
 }
 
+// GetDeployments retrieves the list of deployments for a specific project and team.
+func (c *VercelClient) GetDeployments(projectId, teamId string) ([]schemas.DeploymentResponse, error) {
+	response, status, err := utils.DoReq[schemas.DeploymentListResponse](
+		fmt.Sprintf("%s/v6/deployments?projectId=%s&teamId=%s", config.BaseURL, projectId, teamId),
+		nil,
+		"GET",
+		c.GetHeaders(),
+		false,
+		30*time.Second,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get deployments error: %w", err)
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("failed to get deployments with code %d", status)
+	}
+	return response.Deployments, nil
+}
+
 // GetDeploymentStatus gets the status of a specific deployment by its ID and team ID.
 func (c *VercelClient) GetDeploymentStatus(deploymentId, teamId string) (*schemas.DeploymentStatus, error) {
 	deploymentStatus, status, err := utils.DoReq[schemas.DeploymentStatus](
@@ -129,6 +148,7 @@ func (c *VercelClient) GetDeploymentStatus(deploymentId, teamId string) (*schema
 	return &deploymentStatus, nil
 }
 
+// WaitForDeployment waits for a specific deployment to finish.
 func (c *VercelClient) WaitForDeployment(deploymentId, teamId string, timeout time.Duration) (*schemas.DeploymentStatus, error) {
 	if timeout == 0 {
 		timeout = 10 * time.Minute
@@ -158,4 +178,66 @@ func (c *VercelClient) WaitForDeployment(deploymentId, teamId string, timeout ti
 
 		time.Sleep(checkInterval)
 	}
+}
+
+// DeleteDeployment removes a specific deployment by its ID and team ID.
+func (c *VercelClient) DeleteDeployment(deploymentId, teamId string) error {
+	_, status, err := utils.DoReq[struct{}](
+		fmt.Sprintf("%s/v13/deployments/%s?teamId=%s", config.BaseURL, deploymentId, teamId),
+		nil,
+		"DELETE",
+		c.GetHeaders(),
+		false,
+		30*time.Second,
+	)
+	if err != nil {
+		return fmt.Errorf("delete deployment error: %w", err)
+	}
+	if status != http.StatusOK {
+		return fmt.Errorf("failed to delete deployment with code %d", status)
+	}
+	return nil
+}
+
+// GetCurrentDeployment retrieves the current deployment for a specific project and team.
+func (c *VercelClient) GetCurrentDeployment(projectId, teamId string) (*schemas.CurrentDeployment, error) {
+	response, status, err := utils.DoReq[schemas.CurrentDeploymentResponse](
+		fmt.Sprintf("%s/v1/projects/%s/production-deployment?teamId=%s", config.BaseURL, projectId, teamId),
+		nil,
+		"GET",
+		c.GetHeaders(),
+		false,
+		30*time.Second,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get current deployment error: %w", err)
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("failed to get current deployment with code %d", status)
+	}
+
+	return &response.Deployment, nil
+}
+
+// CleanDeployments deletes all deployments except the one that is in production and is currently active.
+func (c *VercelClient) CleanDeployments(projectId, teamId string) error {
+	currentDeployment, err := c.GetCurrentDeployment(projectId, teamId)
+	if err != nil {
+		return fmt.Errorf("failed to get current deployment: %w", err)
+	}
+
+	deployments, err := c.GetDeployments(projectId, teamId)
+	if err != nil {
+		return fmt.Errorf("failed to get deployments: %w", err)
+	}
+
+	for _, d := range deployments {
+		if d.Uid != currentDeployment.Id && currentDeployment.Id != "" {
+			if err := c.DeleteDeployment(d.Uid, teamId); err != nil {
+				return fmt.Errorf("failed to delete deployment %s: %w", d.Uid, err)
+			}
+		}
+	}
+
+	return nil
 }
