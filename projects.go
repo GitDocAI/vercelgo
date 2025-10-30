@@ -13,7 +13,7 @@ import (
 
 // Allows to create a new project with the provided configuration.
 // It only requires the project name and team ID but more configuration can be provided to override the defaults.
-func (c *VercelClient) CreateProject(payload schemas.CreateProjectRequest, teamId string) (*schemas.Project, error) {
+func (c *VercelClient) CreateProject(payload schemas.CreateProjectRequest, teamId string, framework schemas.VercelFramework) (*schemas.Project, error) {
 	if payload.Name == "" {
 		return nil, fmt.Errorf("project name is required")
 	}
@@ -21,7 +21,7 @@ func (c *VercelClient) CreateProject(payload schemas.CreateProjectRequest, teamI
 		return nil, fmt.Errorf("teamId is required")
 	}
 	if payload.Framework == "" {
-		payload.Framework = "nextjs"
+		payload.Framework = string(framework)
 	}
 
 	body, err := json.Marshal(payload)

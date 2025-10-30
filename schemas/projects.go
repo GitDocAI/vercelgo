@@ -1,5 +1,12 @@
 package schemas
 
+type VercelFramework string
+
+const (
+	FrameworkNextjs VercelFramework = "nextjs"
+	FrameworkVite   VercelFramework = "vite"
+)
+
 type ListProjectsResponse struct {
 	Projects   []Project  `json:"projects"`
 	Pagination Pagination `json:"pagination"`
