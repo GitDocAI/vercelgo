@@ -1,5 +1,7 @@
 package schemas
 
+import "time"
+
 type DeploymentFile struct {
 	File string `json:"file"`
 	Sha  string `json:"sha"`
@@ -61,6 +63,22 @@ type CurrentDeployment struct {
 	ReadyStateAt           int64   `json:"readyStateAt"`
 	BuildingAt             int64   `json:"buildingAt"`
 	PreviewCommentsEnabled bool    `json:"previewCommentsEnabled"`
+}
+
+
+type DeploymentLogType string;
+
+const(
+	Command DeploymentLogType ="command"
+	Stdout DeploymentLogType ="stdout"
+	StdErr DeploymentLogType ="stderr"
+	Exit DeploymentLogType ="exit"
+)
+
+type DeployLogsResponse struct{
+	Type    DeploymentLogType `json:"type"`
+	Created time.Time         `json:"created"`
+	Payload map[string]any    `json:"payload"`
 }
 
 type CurrentDomain struct {
