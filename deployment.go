@@ -245,13 +245,13 @@ func (c *VercelClient) CleanDeployments(projectId, teamId string) error {
 
 
 
-func (c *VercelClient) GetDeploymentLogs(projectId, teamId string) (*schemas.DeployLogsResponse,error) {
+func (c *VercelClient) GetDeploymentLogs(projectId, teamId string) ([]schemas.DeployLogsResponse,error) {
 	currentDeployment, err := c.GetCurrentDeployment(projectId, teamId)
 	if err != nil {
 		return nil,fmt.Errorf("failed to get current deployment: %w", err)
 	}
 
-	response, status, err := utils.DoReq[schemas.DeployLogsResponse](
+	response, status, err := utils.DoReq[[]schemas.DeployLogsResponse](
 		fmt.Sprintf("%s/v3/deployments/%s/events?teamId=%s&direction=forward&limit=10", config.BaseURL, currentDeployment.Id, teamId),
 		nil,
 		"GET",
@@ -266,5 +266,5 @@ func (c *VercelClient) GetDeploymentLogs(projectId, teamId string) (*schemas.Dep
 		return nil, fmt.Errorf("failed to get current deployment logs with code %d", status)
 	}
 
-	return &response, nil
+	return response, nil
 }
