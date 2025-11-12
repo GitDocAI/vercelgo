@@ -107,3 +107,18 @@ func (c *VercelClient) GetDomainConfig(domainName, teamId string) (*schemas.Doma
 
 	return &response, nil
 }
+
+
+func (c *VercelClient) ForceDNSVerification(domainName,projectId, teamId string) (*schemas.ProjectDomanVerification, error) {
+	url := fmt.Sprintf("%s/v9/projects/%s/domains/%s/verify?teamId=%s", config.BaseURL,projectId, domainName,teamId)
+
+	response, status, err := utils.DoReq[schemas.ProjectDomanVerification](url, nil, "POST", c.GetHeaders(), false, 15*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("error verifyng domain: %w", err)
+	}
+	if status != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", status)
+	}
+
+	return &response, nil
+}

@@ -1,5 +1,7 @@
 package schemas
 
+import "time"
+
 type Domain struct {
 	Name       string `json:"name"`
 	Method     string `json:"method,omitempty"`
@@ -64,4 +66,17 @@ type DomainInfoWithVerification struct {
 type ProjectDomainsResponse struct {
 	Domains    []DomainInfo `json:"domains"`
 	Pagination Pagination   `json:"pagination"`
+}
+
+type ProjectDomanVerification struct{
+	Name 	 			string    `json:"name"`
+	ApexName 			string    `json:"apexName"`
+	ProjectId 			string    `json:"projectId"`
+	Redirect 			string    `json:"redirect"`
+	RedirectStatusCode  int       `json:"redirectStatusCode"`
+	GitBranch 			string    `json:"gitBranch"`
+	CustomEnvironmentID string    `json:"customEnvironmentId"`
+	UpdatedAt 			time.Time `json:"updatedAt"`
+	CreatedAt 			time.Time `json:"createdAt"`
+	Verified 			bool      `json:"verified"`
 }
